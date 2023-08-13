@@ -16,6 +16,12 @@ pub fn check_args(
     }
 }
 
+/// Removes the suffix from a string if it exists
+///
+/// # Arguments
+///
+/// * `s` - A string slice
+/// * `suffix` - A string slice
 pub fn remove_suffix<'a>(s: &str, suffix: &str) -> String {
     match s.strip_suffix(suffix) {
         Some(s) => s.to_string(),
