@@ -1,6 +1,7 @@
 use crate::api::types;
 use reqwest;
 use serde_json;
+use std::collections::HashMap;
 use tabled::settings::style::Style;
 use tabled::{settings::Alignment, Table};
 
@@ -57,6 +58,7 @@ fn parse_response(response: &str) {
             user_email: card.user_email.clone(),
             version: card.version.clone(),
             uid: card.uid.clone(),
+            tags: serde_json::to_string(&card.tags).unwrap(),
         });
     }
 
@@ -76,11 +78,23 @@ pub fn list_cards(
     uid: Option<&str>,
     limit: Option<i16>,
     url: &str,
+    tag_name: Option<Vec<String>>,
+    tag_value: Option<Vec<String>>,
 ) -> Result<(), reqwest::Error> {
     // set full path and table name
 
+    let mut tags: HashMap<String, String> = HashMap::new();
     let full_uri_path: String = format!("{}/opsml/cards/list", url);
     let table_name: String = get_registry(&registry);
+
+    if tag_name.is_some() && tag_value.is_some() {
+        tags = tag_name
+            .unwrap()
+            .iter()
+            .zip(tag_value.unwrap().iter())
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect();
+    }
 
     let list_table_request = types::ListTableRequest {
         table_name: table_name,
@@ -89,6 +103,7 @@ pub fn list_cards(
         version: version.map(|s| s.to_string()),
         limit: limit,
         uid: uid.map(|s| s.to_string()),
+        tags: Some(tags),
     };
 
     let client = reqwest::blocking::Client::new();

@@ -64,6 +64,18 @@ struct ListCards {
     /// Card limit
     #[arg(long = "limit")]
     limit: Option<i16>,
+
+    /// Tag name
+    #[arg(long = "tag_name", use_value_delimiter = true, value_delimiter = ',')]
+    tag_name: Option<Vec<String>>,
+
+    /// Tag values
+    #[arg(long = "tag_value", use_value_delimiter = true, value_delimiter = ',')]
+    tag_value: Option<Vec<String>>,
+
+    /// max date
+    #[arg(long = "uid")]
+    max_date: Option<String>,
 }
 
 #[derive(Args)]
@@ -130,6 +142,8 @@ fn main() {
                 args.uid.as_deref(),
                 args.limit.clone(),
                 &*OPSML_TRACKING_URI,
+                args.tag_name.clone(),
+                args.tag_value.clone(),
             );
             match response {
                 Ok(response) => response,
