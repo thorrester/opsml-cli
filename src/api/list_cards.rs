@@ -2,7 +2,6 @@ use crate::api::types;
 use reqwest;
 use serde_json;
 use std::collections::HashMap;
-use std::{fs, path::Path};
 use tabled::settings::style::Style;
 use tabled::{settings::Alignment, Table};
 enum OpsmlRegistries {
@@ -119,12 +118,6 @@ pub fn list_cards(
         tags: Some(tags),
         max_date: max_date.map(|s| s.to_string()),
     };
-
-    let test = serde_json::to_string(&list_table_request).unwrap();
-
-    println!("{:?}", test);
-    fs::File::create("req.json").expect("Unable to create metadata file");
-    fs::write("req.json", &test).expect("Unable to write file");
 
     let client = reqwest::blocking::Client::new();
     let response = client
