@@ -12,6 +12,7 @@ pub struct ListTableRequest {
     pub uid: Option<String>,
     pub limit: Option<i16>,
     pub tags: Option<HashMap<String, String>>,
+    pub max_date: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -51,7 +52,6 @@ pub struct CardTable {
     pub user_email: String,
     pub version: String,
     pub uid: String,
-    pub tags: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

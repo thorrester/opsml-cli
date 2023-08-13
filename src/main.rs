@@ -74,7 +74,7 @@ struct ListCards {
     tag_value: Option<Vec<String>>,
 
     /// max date
-    #[arg(long = "uid")]
+    #[arg(long = "max_date")]
     max_date: Option<String>,
 }
 
@@ -144,6 +144,7 @@ fn main() {
                 &*OPSML_TRACKING_URI,
                 args.tag_name.clone(),
                 args.tag_value.clone(),
+                args.max_date.as_deref(),
             );
             match response {
                 Ok(response) => response,

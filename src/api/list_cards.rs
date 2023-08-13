@@ -2,9 +2,9 @@ use crate::api::types;
 use reqwest;
 use serde_json;
 use std::collections::HashMap;
+use std::{fs, path::Path};
 use tabled::settings::style::Style;
 use tabled::{settings::Alignment, Table};
-
 enum OpsmlRegistries {
     Data,
     Model,
@@ -17,7 +17,7 @@ impl OpsmlRegistries {
     fn as_str(&self) -> String {
         match self {
             OpsmlRegistries::Data => "OPSML_DATA_REGISTRY".to_string(),
-            OpsmlRegistries::Model => "OPSML_Model_REGISTRY".to_string(),
+            OpsmlRegistries::Model => "OPSML_MODEL_REGISTRY".to_string(),
             OpsmlRegistries::Run => "OPSML_RUN_REGISTRY".to_string(),
             OpsmlRegistries::Pipeline => "OPSML_PIPELINE_REGISTRY".to_string(),
             OpsmlRegistries::Audit => "OPSML_AUDIT_REGISTRY".to_string(),
@@ -58,7 +58,6 @@ fn parse_response(response: &str) {
             user_email: card.user_email.clone(),
             version: card.version.clone(),
             uid: card.uid.clone(),
-            tags: serde_json::to_string(&card.tags).unwrap(),
         });
     }
 
@@ -70,6 +69,19 @@ fn parse_response(response: &str) {
     println!("{}", list_table);
 }
 
+/// List cards
+///     
+/// # Arguments
+///
+/// * `registry` - Registry to list cards from
+/// * `name` - Name of card
+/// * `team` - Team name
+/// * `version` - Card version
+/// * `uid` - Card uid
+/// * `limit` - Limit number of cards returned
+/// * `url` - OpsML url
+/// * `tag_name` - Tag name
+/// * `tag_value` - Tag value
 pub fn list_cards(
     registry: &str,
     name: Option<&str>,
@@ -80,6 +92,7 @@ pub fn list_cards(
     url: &str,
     tag_name: Option<Vec<String>>,
     tag_value: Option<Vec<String>>,
+    max_date: Option<&str>,
 ) -> Result<(), reqwest::Error> {
     // set full path and table name
 
@@ -104,7 +117,14 @@ pub fn list_cards(
         limit: limit,
         uid: uid.map(|s| s.to_string()),
         tags: Some(tags),
+        max_date: max_date.map(|s| s.to_string()),
     };
+
+    let test = serde_json::to_string(&list_table_request).unwrap();
+
+    println!("{:?}", test);
+    fs::File::create("req.json").expect("Unable to create metadata file");
+    fs::write("req.json", &test).expect("Unable to write file");
 
     let client = reqwest::blocking::Client::new();
     let response = client
@@ -128,7 +148,7 @@ mod tests {
 
     #[test]
     fn test_get_registry() {
-        let v = vec!["data", "model", "run"];
+        let v = vec!["data", "model", "run", "audit"];
 
         for name in &v {
             let regsitry: String = get_registry(name);
@@ -147,6 +167,7 @@ mod tests {
             user_email: "fake_email".to_string(),
             version: "1.0.0".to_string(),
             uid: "uid".to_string(),
+            tags: HashMap::new(),
         };
         vec.push(card);
 
