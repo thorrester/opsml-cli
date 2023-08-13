@@ -92,13 +92,17 @@ pub fn list_cards(
     };
 
     let client = reqwest::blocking::Client::new();
-    let response: String = client
+    let response = client
         .post(full_uri_path)
         .json(&list_table_request)
-        .send()?
-        .text()?;
+        .send()?;
 
-    parse_response(&response);
+    if response.status().is_success() {
+        parse_response(&response.text()?);
+    } else {
+        println!("Failed to list cards");
+        response.error_for_status_ref()?;
+    }
 
     Ok(())
 }

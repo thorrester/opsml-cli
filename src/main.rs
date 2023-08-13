@@ -1,6 +1,7 @@
 use api::download_file::download_model;
 use api::download_file::download_model_metadata;
 use api::list_cards::list_cards;
+use api::utils::remove_suffix;
 mod api;
 
 use clap::command;
@@ -12,7 +13,12 @@ use std::env;
 
 lazy_static! {
     static ref OPSML_TRACKING_URI: String = match env::var("OPSML_TRACKING_URI") {
-        Ok(val) => val,
+        Ok(val) =>
+            if val.ends_with("/") {
+                remove_suffix(&val, "/")
+            } else {
+                val
+            },
         Err(_e) => panic!("No tracking uri set"),
     };
 }
