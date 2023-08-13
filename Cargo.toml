@@ -1,8 +1,20 @@
 [package]
-name = "opsml-cli"
+name = "opsml_cli"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+clap = { version ="4.3.21",features = ["derive"] }
+futures = "0.3.28"
+futures-util = "0.3.28"
+lazy_static = "1.4.0"
+reqwest = {version="0.11.18", features = ["blocking", "json", "stream"]}
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.96"
+tabled = "0.12.0"
+tokio = {version="1.28.2", features = ["rt", "macros"] }
+
+[dev-dependencies]
+assert-json-diff = "2.0.2"
+mockito = "1.0.2"
+
