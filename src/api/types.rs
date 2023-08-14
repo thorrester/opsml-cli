@@ -18,7 +18,6 @@ pub struct ListTableRequest {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DownloadMetadataRequest {
     pub name: Option<String>,
-    pub team: Option<String>,
     pub version: Option<String>,
     pub uid: Option<String>,
 }
@@ -55,13 +54,27 @@ pub struct CardTable {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct ModelDataSchema {
+    data_type: String,
+    input_features: HashMap<String, Value>,
+    output_features: HashMap<String, Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DataSchema {
+    model_data_schema: ModelDataSchema,
+    input_data_schema: Option<HashMap<String, Value>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ModelMetadata {
     pub model_name: String,
     pub model_type: String,
-    pub onnx_uri: String,
-    pub onnx_version: String,
+    pub onnx_uri: Option<String>,
+    pub onnx_version: Option<String>,
     pub model_uri: String,
     pub model_version: String,
+    pub model_team: String,
     pub sample_data: HashMap<String, Value>,
-    pub data_schema: HashMap<String, HashMap<String, Value>>,
+    pub data_schema: DataSchema,
 }

@@ -160,7 +160,6 @@ fn main() {
         Some(Commands::DownloadModelMetadata(args)) => {
             download_model_metadata(
                 args.name.clone(),
-                args.team.clone(),
                 args.version.clone(),
                 args.uid.clone(),
                 &*OPSML_TRACKING_URI,
@@ -171,7 +170,6 @@ fn main() {
         Some(Commands::DownloadModel(args)) => {
             download_model(
                 args.name.clone(),
-                args.team.clone(),
                 args.version.clone(),
                 args.uid.clone(),
                 &*OPSML_TRACKING_URI,

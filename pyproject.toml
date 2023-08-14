@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["thorrester <steven.forrester@shipt.com>"]
 readme = "README.md"
-packages = [{include = "opsml_cli"}]
+packages = [{include = "opsml-cli"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
