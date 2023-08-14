@@ -1,10 +1,9 @@
 pub fn check_args(
     name: &Option<String>,
-    team: &Option<String>,
     version: &Option<String>,
     uid: &Option<String>,
 ) -> Result<(), &'static str> {
-    let common_args = vec![name, team, version];
+    let common_args = vec![name, version];
     let has_common = common_args.iter().all(|i| i.is_none());
 
     let has_uid = uid.is_none();

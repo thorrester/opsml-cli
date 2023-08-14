@@ -124,7 +124,11 @@ struct DownloadModelArgs {
     write_dir: String,
 
     /// Boolean indicating whether to download onnx or trained model
-    #[arg(long = "onnx")]
+    #[arg(long = "no-onnx", default_value = "false")]
+    no_onnx: bool,
+
+    /// Boolean indicating whether to download onnx or trained model
+    #[arg(long = "onnx", default_value = "true")]
     onnx: bool,
 }
 
@@ -172,6 +176,7 @@ fn main() {
                 args.uid.clone(),
                 &*OPSML_TRACKING_URI,
                 &args.write_dir.clone(),
+                args.no_onnx.clone(),
                 args.onnx.clone(),
             );
         }

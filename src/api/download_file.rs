@@ -139,7 +139,7 @@ pub async fn download_model_metadata(
     write_dir: &str,
 ) -> types::ModelMetadata {
     // check args first
-    utils::check_args(&name, &team, &version, &uid).unwrap();
+    utils::check_args(&name, &version, &uid).unwrap();
     return get_model_metadata(name, team, version, uid, url, write_dir).await;
 }
 
@@ -151,7 +151,8 @@ pub async fn download_model_metadata(
 /// * `uid` - uid of model
 /// * `url` - url of opsml server
 /// * `write_dir` - directory to write to
-/// * `onnx` - whether to download onnx model or original model
+/// * `no_onnx` - Flag to not download onnx model
+/// * `onnx` - Flag to download onnx model
 #[tokio::main]
 pub async fn download_model(
     name: Option<String>,
@@ -160,15 +161,21 @@ pub async fn download_model(
     uid: Option<String>,
     url: &str,
     write_dir: &str,
+    no_onnx: bool,
     onnx: bool,
 ) {
     // check args first
-    utils::check_args(&name, &team, &version, &uid).unwrap();
+    utils::check_args(&name, &version, &uid).unwrap();
+
+    // If no onnx is set to true, we need to cancel out onnx: true
+    // Clap does not currently support command line negation flags
+
+    let download_onnx = if onnx && no_onnx { false } else { true };
 
     let model_metadata = get_model_metadata(name, team, version, uid, url, write_dir).await;
     let download_url: String = format!("{}/opsml/files/download", url);
 
-    let (filename, model_uri) = get_model_uri(onnx, &model_metadata);
+    let (filename, model_uri) = get_model_uri(download_onnx, &model_metadata);
 
     let local_save_path = format!("{}/{}", write_dir, filename);
 
