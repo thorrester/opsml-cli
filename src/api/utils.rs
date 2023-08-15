@@ -33,13 +33,12 @@ impl OpsmlPaths {
             OpsmlPaths::Download => {
                 format!("{}/opsml/files/download", OPSML_TRACKING_URI.to_string())
             }
-            OpsmlPaths::Metric => format!(
-                "{}/opsml/models/metrics/compare",
-                OPSML_TRACKING_URI.to_string()
-            ),
+            OpsmlPaths::Metric => {
+                format!("{}/opsml/models/metrics", OPSML_TRACKING_URI.to_string())
+            }
             OpsmlPaths::CompareMetric => {
                 format!(
-                    "{}/opsml/models/metrics/compare",
+                    "{}/opsml/models/compare_metrics",
                     OPSML_TRACKING_URI.to_string()
                 )
             }

@@ -47,8 +47,8 @@ fn parse_metric_response(response: &str) -> String {
 fn parse_compare_metric_response(response: &str) -> String {
     // Parses response and creates a table
 
-    let compare_report: types::CompareMetricResponse =
-        serde_json::from_str(response).expect("Failed to load response to MetricResponse JSON");
+    let compare_report: types::CompareMetricResponse = serde_json::from_str(response)
+        .expect("Failed to load response to CompareMetricResponse JSON");
 
     let mut builder = tabled::builder::Builder::default();
     builder.set_header(vec![
@@ -250,8 +250,8 @@ mod tests {
         let mut report = HashMap::new();
         report.insert("test".to_string(), vec![battle_report, battle_report2]);
         let compare_response = types::CompareMetricResponse {
-            champion_name: "hootie-and-the-blowfish".to_string(),
-            champion_version: "1.0.0".to_string(),
+            challenger_name: "hootie-and-the-blowfish".to_string(),
+            challenger_version: "1.0.0".to_string(),
             report: report,
         };
         let string_response = serde_json::to_string(&compare_response).unwrap();

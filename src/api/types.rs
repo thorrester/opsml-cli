@@ -129,7 +129,7 @@ pub struct BattleReport {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CompareMetricResponse {
-    pub champion_name: String,
-    pub champion_version: String,
+    pub challenger_name: String,
+    pub challenger_version: String,
     pub report: HashMap<String, Vec<BattleReport>>,
 }

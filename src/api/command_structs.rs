@@ -104,7 +104,7 @@ pub struct ModelMetricArgs {
 pub struct CompareMetricArgs {
     /// Metric name
     #[arg(
-        long = "metric_name",
+        long = "metric-name",
         use_value_delimiter = true,
         value_delimiter = ','
     )]
@@ -112,7 +112,7 @@ pub struct CompareMetricArgs {
 
     /// If lower is better
     #[arg(
-        long = "lower_is_better",
+        long = "lower-is-better",
         use_value_delimiter = true,
         value_delimiter = ',',
         default_value = "true"
@@ -120,10 +120,15 @@ pub struct CompareMetricArgs {
     pub lower_is_better: Vec<bool>,
 
     /// Id of new model challenger
-    #[arg(long = "challenger_uid")]
+    #[arg(long = "challenger-uid")]
     pub challenger_uid: String,
 
     /// Id of new model challenger
-    #[arg(long = "champions_uid")]
+    #[arg(
+        long = "champion-uid",
+        use_value_delimiter = true,
+        value_delimiter = ',',
+        default_value = "true"
+    )]
     pub champion_uid: Vec<String>,
 }
