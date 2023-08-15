@@ -46,7 +46,8 @@ fn get_registry(registry: &str) -> String {
 fn parse_list_response(response: &str) -> String {
     // Parses response and creates a table
 
-    let cards: types::ListCardResponse = serde_json::from_str(response).unwrap();
+    let cards: types::ListCardResponse =
+        serde_json::from_str(response).expect("Failed to load response to CardResponse JSON");
 
     let mut card_table: Vec<types::CardTable> = Vec::new();
 
@@ -82,6 +83,7 @@ fn parse_list_response(response: &str) -> String {
 /// * `url` - OpsML url
 /// * `tag_name` - Tag name
 /// * `tag_value` - Tag value
+#[tokio::main]
 pub async fn list_cards(
     registry: &str,
     name: Option<&str>,
@@ -123,7 +125,7 @@ pub async fn list_cards(
     let response = utils::make_post_request(&full_uri_path, &list_table_request).await;
 
     if response.status().is_success() {
-        let card_table = parse_list_response(&response.text().await?);
+        let card_table = parse_list_response(&response.text().await.unwrap());
         println!("{}", card_table);
     } else {
         println!("Failed to list cards");

@@ -7,7 +7,8 @@ use tabled::{settings::Alignment, Table};
 fn parse_metric_response(response: &str) -> String {
     // Parses response and creates a table
 
-    let metrics: types::ListMetricResponse = serde_json::from_str(response).unwrap();
+    let metrics: types::ListMetricResponse =
+        serde_json::from_str(response).expect("Failed to load response to MetricResponse JSON");
 
     let mut metric_table: Vec<types::MetricTable> = Vec::new();
 
@@ -50,6 +51,7 @@ fn parse_metric_response(response: &str) -> String {
 /// * `version` - Version of the model
 /// * `uid` - Unique identifier of the model
 /// * `url` - URL of the OpsML server
+#[tokio::main]
 pub async fn get_model_metrics(
     name: Option<&str>,
     version: Option<&str>,
@@ -70,7 +72,7 @@ pub async fn get_model_metrics(
         let metric_table = parse_metric_response(&response.text().await?);
         println!("{}", metric_table);
     } else {
-        println!("Failed to list cards");
+        println!("Failed to get metrics for model");
         response.error_for_status_ref()?;
     }
 

@@ -23,7 +23,7 @@ async fn load_stream_response(response: Response) -> String {
     return stream_buffer;
 }
 
-async fn download_stream_to_file(response: Response, filename: &Path) {
+async fn download_stream_to_file(response: Response, filename: &Path) -> Result<(), String> {
     let mut response_stream = response.bytes_stream();
     let mut file = tokio::fs::File::create(filename).await.unwrap();
 
@@ -33,6 +33,7 @@ async fn download_stream_to_file(response: Response, filename: &Path) {
             .await
             .unwrap();
     }
+    Ok(())
 }
 
 /// Create parent directories associated with path
@@ -44,19 +45,23 @@ fn create_dir_path(path: &str) {
     std::fs::create_dir_all(prefix).unwrap();
 }
 
-/// Saves struct to json
+/// Saves metadata to json
 ///
-/// * `metadata` - Model metadata struct
-fn save_metadata_to_json(metadata: &types::ModelMetadata, path: &str) -> std::io::Result<()> {
+/// * `metadata` - metadata to save
+/// * `path` - path to save to
+async fn save_metadata_to_json(metadata: &types::ModelMetadata, path: &str) -> Result<(), String> {
     let json_string = serde_json::to_string(metadata).unwrap();
     fs::File::create(path).expect("Unable to create metadata file");
     fs::write(path, &json_string).expect("Unable to write file");
-
     Ok(())
 }
 
 /// Downloads a model file
-async fn download_model_file(url: &str, model_uri: &str, local_save_path: &str) {
+async fn download_model_file(
+    url: &str,
+    model_uri: &str,
+    local_save_path: &str,
+) -> Result<(), String> {
     let payload = types::ModelDownloadRequest {
         read_path: model_uri.to_string(),
     };
@@ -64,7 +69,9 @@ async fn download_model_file(url: &str, model_uri: &str, local_save_path: &str) 
     let response = utils::make_post_request(&url, &payload).await;
     let filepath = Path::new(local_save_path);
 
-    download_stream_to_file(response, filepath).await;
+    download_stream_to_file(response, filepath).await?;
+
+    Ok(())
 }
 
 /// Main function for downloading model metadata
@@ -74,7 +81,7 @@ async fn get_model_metadata(
     uid: Option<String>,
     url: &str,
     write_dir: &str,
-) -> types::ModelMetadata {
+) -> Result<types::ModelMetadata, String> {
     let full_uri_path: String = format!("{}/opsml/models/metadata", url);
     let save_path: String = format!("{}/{}", write_dir, MODEL_METADATA_FILE);
 
@@ -87,13 +94,14 @@ async fn get_model_metadata(
     let response = utils::make_post_request(&full_uri_path, &model_metadata_request).await;
 
     let loaded_response = load_stream_response(response).await;
-    let model_metadata: types::ModelMetadata = serde_json::from_str(&loaded_response).unwrap();
+    let model_metadata: types::ModelMetadata =
+        serde_json::from_str(&loaded_response).expect("Failed to parse model Metadata");
 
     // create save path for metadata
     create_dir_path(&save_path);
-    save_metadata_to_json(&model_metadata, &save_path).unwrap();
+    save_metadata_to_json(&model_metadata, &save_path).await?;
 
-    return model_metadata;
+    Ok(model_metadata)
 }
 
 /// Sets model uri (onnx or trained model) depending on boolean
@@ -128,10 +136,11 @@ pub async fn download_model_metadata(
     uid: Option<String>,
     url: &str,
     write_dir: &str,
-) -> types::ModelMetadata {
+) -> Result<types::ModelMetadata, String> {
     // check args first
-    utils::check_args(&name, &version, &uid).unwrap();
-    return get_model_metadata(name, version, uid, url, write_dir).await;
+    utils::check_args(&name, &version, &uid).await?;
+    let model_metadata = get_model_metadata(name, version, uid, url, write_dir).await?;
+    Ok(model_metadata)
 }
 
 /// Downloads model file
@@ -153,16 +162,16 @@ pub async fn download_model(
     write_dir: &str,
     no_onnx: bool,
     onnx: bool,
-) {
+) -> Result<(), String> {
     // check args first
-    utils::check_args(&name, &version, &uid).unwrap();
+    utils::check_args(&name, &version, &uid).await?;
 
     // If no onnx is set to true, we need to cancel out onnx: true
     // Clap does not currently support command line negation flags
 
     let download_onnx = if onnx && no_onnx { false } else { true };
 
-    let model_metadata = get_model_metadata(name, version, uid, url, write_dir).await;
+    let model_metadata = get_model_metadata(name, version, uid, url, write_dir).await?;
 
     let download_url: String = format!("{}/opsml/files/download", url);
 
@@ -176,7 +185,9 @@ pub async fn download_model(
     create_dir_path(&local_save_path);
 
     // Download model
-    download_model_file(&download_url, &model_uri, &local_save_path).await;
+    download_model_file(&download_url, &model_uri, &local_save_path).await?;
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -216,15 +227,15 @@ mod tests {
         mock.assert()
     }
 
-    #[test]
-    fn test_save_json() {
+    #[tokio::test]
+    async fn test_save_json() -> Result<(), String> {
         // read mock response object
         let path = "./src/api/test_utils/metadata_onnx.json";
         let data = fs::read_to_string(path).expect("Unable to read file");
         let mock_metadata_orig: types::ModelMetadata = serde_json::from_str(&data).unwrap();
         let new_path = "./src/api/test_utils/new_mock_response.json";
 
-        save_metadata_to_json(&mock_metadata_orig, new_path).unwrap();
+        save_metadata_to_json(&mock_metadata_orig, new_path).await?;
 
         let new_data = fs::read_to_string(new_path).expect("Unable to read file");
 
@@ -234,6 +245,8 @@ mod tests {
 
         // clean up
         fs::remove_file(new_path).unwrap();
+
+        Ok(())
     }
 
     #[test]
@@ -252,7 +265,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_download_stream_to_file() {
+    async fn test_download_stream_to_file() -> Result<(), String> {
         let mut server = mockito::Server::new();
         let url = server.url();
         let path = "./src/api/test_utils/metadata_onnx.json";
@@ -269,9 +282,11 @@ mod tests {
         let full_path: String = format!("{}/fake", &url);
         let response = client.get(&full_path).send().await.unwrap();
 
-        download_stream_to_file(response, Path::new(new_path)).await;
+        download_stream_to_file(response, Path::new(new_path)).await?;
         mock.assert();
         fs::remove_file(new_path).unwrap();
+
+        Ok(())
     }
 
     #[tokio::test]

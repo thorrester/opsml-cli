@@ -4,7 +4,6 @@ use api::list_cards::list_cards;
 use api::metrics::get_model_metrics;
 use api::utils::remove_suffix;
 mod api;
-
 use clap::command;
 use clap::Args;
 use clap::Parser;
@@ -106,10 +105,6 @@ struct ModelMetadataArgs {
     #[arg(long = "name")]
     name: Option<String>,
 
-    /// Team name
-    #[arg(long = "team")]
-    team: Option<String>,
-
     /// Card version
     #[arg(long = "version")]
     version: Option<String>,
@@ -128,10 +123,6 @@ struct DownloadModelArgs {
     /// Name given to card
     #[arg(long = "name")]
     name: Option<String>,
-
-    /// Team name
-    #[arg(long = "team")]
-    team: Option<String>,
 
     /// Card version
     #[arg(long = "version")]
@@ -169,8 +160,7 @@ struct ModelMetricArgs {
     uid: Option<String>,
 }
 
-#[tokio::main]
-async fn main() {
+fn main() -> Result<(), String> {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -187,13 +177,12 @@ async fn main() {
                 args.tag_name.clone(),
                 args.tag_value.clone(),
                 args.max_date.as_deref(),
-            )
-            .await;
+            );
 
             match response {
-                Ok(response) => response,
-                Err(error) => panic!("Problem encountered: {:?}", error),
-            };
+                Ok(response) => Ok(response),
+                Err(e) => Err(e.to_string()),
+            }
         }
 
         // subcommand for downloading model metadata
@@ -204,7 +193,8 @@ async fn main() {
                 args.uid.clone(),
                 &*OPSML_TRACKING_URI,
                 &args.write_dir.clone(),
-            );
+            )?;
+            Ok(())
         }
         // subcommand for downloading a model
         Some(Commands::DownloadModel(args)) => {
@@ -216,7 +206,8 @@ async fn main() {
                 &args.write_dir.clone(),
                 args.no_onnx.clone(),
                 args.onnx.clone(),
-            );
+            )?;
+            Ok(())
         }
         // subcommand for getting model metrics
         Some(Commands::GetModelMetrics(args)) => {
@@ -225,15 +216,14 @@ async fn main() {
                 args.version.as_deref(),
                 args.uid.as_deref(),
                 &*OPSML_TRACKING_URI,
-            )
-            .await;
+            );
 
             match response {
-                Ok(response) => response,
-                Err(error) => panic!("Problem encountered: {:?}", error),
-            };
+                Ok(response) => Ok(response),
+                Err(e) => Err(e.to_string()),
+            }
         }
 
-        None => {}
+        None => Ok(()),
     }
 }
