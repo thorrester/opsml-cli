@@ -198,7 +198,7 @@ mod tests {
     #[tokio::test]
     async fn test_parse_response() {
         // read mock response object
-        let path = "./src/api/test_utils/mock_response.json";
+        let path = "./src/api/test_utils/metadata_non_onnx.json";
         let data = fs::read_to_string(path).expect("Unable to read file");
         let mock_metadata: types::ModelMetadata = serde_json::from_str(&data).unwrap();
 
@@ -228,7 +228,7 @@ mod tests {
     #[test]
     fn test_save_json() {
         // read mock response object
-        let path = "./src/api/test_utils/mock_response.json";
+        let path = "./src/api/test_utils/metadata_onnx.json";
         let data = fs::read_to_string(path).expect("Unable to read file");
         let mock_metadata_orig: types::ModelMetadata = serde_json::from_str(&data).unwrap();
         let new_path = "./src/api/test_utils/new_mock_response.json";
@@ -245,11 +245,26 @@ mod tests {
         fs::remove_file(new_path).unwrap();
     }
 
+    #[test]
+    fn test_model_metadata_loading() {
+        // read model metadata
+        let path = "./src/api/test_utils/metadata_onnx.json";
+        let data = fs::read_to_string(path).expect("Unable to read file");
+        let mock_metadata: types::ModelMetadata = serde_json::from_str(&data).unwrap();
+        assert!(mock_metadata.onnx_uri.is_some());
+
+        // read model metadata without onnx
+        let path = "./src/api/test_utils/metadata_non_onnx.json";
+        let data = fs::read_to_string(path).expect("Unable to read file");
+        let mock_metadata_non_onnx: types::ModelMetadata = serde_json::from_str(&data).unwrap();
+        assert!(mock_metadata_non_onnx.onnx_uri.is_none());
+    }
+
     #[tokio::test]
     async fn test_download_stream_to_file() {
         let mut server = mockito::Server::new();
         let url = server.url();
-        let path = "./src/api/test_utils/mock_response.json";
+        let path = "./src/api/test_utils/metadata_onnx.json";
         let new_path = "./src/api/test_utils/new_mock_response.json";
 
         // Create a mock server
@@ -272,7 +287,7 @@ mod tests {
     async fn test_make_post_request() {
         let mut server = mockito::Server::new();
         let url = server.url();
-        let path = "./src/api/test_utils/mock_response.json";
+        let path = "./src/api/test_utils/metadata_onnx.json";
         let payload = types::ModelDownloadRequest {
             read_path: "mock_path".to_string(),
         };
