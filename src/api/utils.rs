@@ -1,5 +1,51 @@
+use lazy_static::lazy_static;
 use reqwest::{self, Response};
 use serde::Serialize;
+use std::env;
+
+lazy_static! {
+    static ref OPSML_TRACKING_URI: String = match env::var("OPSML_TRACKING_URI") {
+        Ok(val) =>
+            if val.ends_with("/") {
+                remove_suffix(&val, "/")
+            } else {
+                val
+            },
+        Err(_e) => panic!("No tracking uri set"),
+    };
+}
+
+pub enum OpsmlPaths {
+    ListCard,
+    MetadataDownload,
+    Download,
+    Metric,
+    CompareMetric,
+}
+
+impl OpsmlPaths {
+    pub fn as_str(&self) -> String {
+        match self {
+            OpsmlPaths::ListCard => format!("{}/opsml/cards/list", OPSML_TRACKING_URI.to_string()),
+            OpsmlPaths::MetadataDownload => {
+                format!("{}/opsml/models/metadata", OPSML_TRACKING_URI.to_string())
+            }
+            OpsmlPaths::Download => {
+                format!("{}/opsml/files/download", OPSML_TRACKING_URI.to_string())
+            }
+            OpsmlPaths::Metric => format!(
+                "{}/opsml/models/metrics/compare",
+                OPSML_TRACKING_URI.to_string()
+            ),
+            OpsmlPaths::CompareMetric => {
+                format!(
+                    "{}/opsml/models/metrics/compare",
+                    OPSML_TRACKING_URI.to_string()
+                )
+            }
+        }
+    }
+}
 
 pub async fn check_args(
     name: &Option<String>,

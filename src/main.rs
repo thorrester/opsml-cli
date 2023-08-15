@@ -1,27 +1,14 @@
-use api::command_structs::{DownloadModelArgs, ListCards, ModelMetadataArgs, ModelMetricArgs};
+use api::command_structs::{
+    CompareMetricArgs, DownloadModelArgs, ListCards, ModelMetadataArgs, ModelMetricArgs,
+};
 use api::download_file::download_model;
 use api::download_file::download_model_metadata;
 use api::list_cards::list_cards;
-use api::metrics::get_model_metrics;
-use api::utils::remove_suffix;
+use api::metrics::{compare_model_metrics, get_model_metrics};
 mod api;
 use clap::command;
 use clap::Parser;
 use clap::Subcommand;
-use lazy_static::lazy_static;
-use std::env;
-
-lazy_static! {
-    static ref OPSML_TRACKING_URI: String = match env::var("OPSML_TRACKING_URI") {
-        Ok(val) =>
-            if val.ends_with("/") {
-                remove_suffix(&val, "/")
-            } else {
-                val
-            },
-        Err(_e) => panic!("No tracking uri set"),
-    };
-}
 
 #[derive(Parser)]
 #[command(about = "CLI tool for Interacting with an Opsml server")]
@@ -58,6 +45,12 @@ enum Commands {
     ///
     /// opsml-cli get-model-metrics --name model_name --version 1.0.0
     GetModelMetrics(ModelMetricArgs),
+    /// Compare model metrics
+    ///
+    /// # Example
+    ///
+    /// opsml-cli compare-model-metrics
+    CompareModelMetrics(CompareMetricArgs),
 }
 
 fn main() -> Result<(), String> {
@@ -73,7 +66,6 @@ fn main() -> Result<(), String> {
                 args.version.as_deref(),
                 args.uid.as_deref(),
                 args.limit.clone(),
-                &*OPSML_TRACKING_URI,
                 args.tag_name.clone(),
                 args.tag_value.clone(),
                 args.max_date.as_deref(),
@@ -91,7 +83,6 @@ fn main() -> Result<(), String> {
                 args.name.clone(),
                 args.version.clone(),
                 args.uid.clone(),
-                &*OPSML_TRACKING_URI,
                 &args.write_dir.clone(),
             )?;
             Ok(())
@@ -102,7 +93,6 @@ fn main() -> Result<(), String> {
                 args.name.clone(),
                 args.version.clone(),
                 args.uid.clone(),
-                &*OPSML_TRACKING_URI,
                 &args.write_dir.clone(),
                 args.no_onnx.clone(),
                 args.onnx.clone(),
@@ -115,7 +105,21 @@ fn main() -> Result<(), String> {
                 args.name.as_deref(),
                 args.version.as_deref(),
                 args.uid.as_deref(),
-                &*OPSML_TRACKING_URI,
+            );
+
+            match response {
+                Ok(response) => Ok(response),
+                Err(e) => Err(e.to_string()),
+            }
+        }
+
+        // subcommand for comparing model metrics
+        Some(Commands::CompareModelMetrics(args)) => {
+            let response = compare_model_metrics(
+                &args.metric_name,
+                &args.lower_is_better,
+                &args.challenger_uid,
+                &args.champion_uid,
             );
 
             match response {

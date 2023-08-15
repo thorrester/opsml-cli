@@ -91,7 +91,6 @@ pub async fn list_cards(
     version: Option<&str>,
     uid: Option<&str>,
     limit: Option<i16>,
-    url: &str,
     tag_name: Option<Vec<String>>,
     tag_value: Option<Vec<String>>,
     max_date: Option<&str>,
@@ -99,7 +98,6 @@ pub async fn list_cards(
     // set full path and table name
 
     let mut tags: HashMap<String, String> = HashMap::new();
-    let full_uri_path: String = format!("{}/opsml/cards/list", url);
     let table_name: String = get_registry(&registry);
 
     if tag_name.is_some() && tag_value.is_some() {
@@ -122,7 +120,8 @@ pub async fn list_cards(
         max_date: max_date.map(|s| s.to_string()),
     };
 
-    let response = utils::make_post_request(&full_uri_path, &list_table_request).await;
+    let response =
+        utils::make_post_request(&utils::OpsmlPaths::ListCard.as_str(), &list_table_request).await;
 
     if response.status().is_success() {
         let card_table = parse_list_response(&response.text().await.unwrap());

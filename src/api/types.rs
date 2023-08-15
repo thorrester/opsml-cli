@@ -43,7 +43,7 @@ pub struct ListMetricResponse {
     pub metrics: HashMap<String, Vec<Metric>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Metric {
     pub name: String,
     pub value: Value,
@@ -57,6 +57,16 @@ pub struct MetricTable {
     pub value: Value,
     pub step: String,
     pub timestamp: String,
+}
+
+#[derive(Tabled)]
+pub struct CompareMetricTable {
+    pub champion_name: String,
+    pub champion_version: Value,
+    pub metric: String,
+    pub champion_value: Value,
+    pub challenger_value: Value,
+    pub challenger_win: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -98,4 +108,28 @@ pub struct ModelMetadata {
     pub model_team: String,
     pub sample_data: HashMap<String, Value>,
     pub data_schema: DataSchema,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CompareMetricRequest {
+    pub metric_name: Vec<String>,
+    pub lower_is_better: Vec<bool>,
+    pub challenger_uid: String,
+    pub champion_uid: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BattleReport {
+    pub champion_name: String,
+    pub champion_version: String,
+    pub champion_metric: Option<Metric>,
+    pub challenger_metric: Option<Metric>,
+    pub challenger_win: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CompareMetricResponse {
+    pub champion_name: String,
+    pub champion_version: String,
+    pub report: HashMap<String, Vec<BattleReport>>,
 }

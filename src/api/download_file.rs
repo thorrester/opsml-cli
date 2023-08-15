@@ -79,10 +79,8 @@ async fn get_model_metadata(
     name: Option<String>,
     version: Option<String>,
     uid: Option<String>,
-    url: &str,
     write_dir: &str,
 ) -> Result<types::ModelMetadata, String> {
-    let full_uri_path: String = format!("{}/opsml/models/metadata", url);
     let save_path: String = format!("{}/{}", write_dir, MODEL_METADATA_FILE);
 
     let model_metadata_request = types::CardRequest {
@@ -91,7 +89,11 @@ async fn get_model_metadata(
         uid: uid,
     };
 
-    let response = utils::make_post_request(&full_uri_path, &model_metadata_request).await;
+    let response = utils::make_post_request(
+        &utils::OpsmlPaths::MetadataDownload.as_str(),
+        &model_metadata_request,
+    )
+    .await;
 
     let loaded_response = load_stream_response(response).await;
     let model_metadata: types::ModelMetadata =
@@ -134,12 +136,11 @@ pub async fn download_model_metadata(
     name: Option<String>,
     version: Option<String>,
     uid: Option<String>,
-    url: &str,
     write_dir: &str,
 ) -> Result<types::ModelMetadata, String> {
     // check args first
     utils::check_args(&name, &version, &uid).await?;
-    let model_metadata = get_model_metadata(name, version, uid, url, write_dir).await?;
+    let model_metadata = get_model_metadata(name, version, uid, write_dir).await?;
     Ok(model_metadata)
 }
 
@@ -158,7 +159,6 @@ pub async fn download_model(
     name: Option<String>,
     version: Option<String>,
     uid: Option<String>,
-    url: &str,
     write_dir: &str,
     no_onnx: bool,
     onnx: bool,
@@ -170,11 +170,7 @@ pub async fn download_model(
     // Clap does not currently support command line negation flags
 
     let download_onnx = if onnx && no_onnx { false } else { true };
-
-    let model_metadata = get_model_metadata(name, version, uid, url, write_dir).await?;
-
-    let download_url: String = format!("{}/opsml/files/download", url);
-
+    let model_metadata = get_model_metadata(name, version, uid, write_dir).await?;
     let (filename, model_uri) = get_model_uri(download_onnx, &model_metadata);
 
     println!("Downloading model: {}, {}", filename, model_uri);
@@ -185,7 +181,12 @@ pub async fn download_model(
     create_dir_path(&local_save_path);
 
     // Download model
-    download_model_file(&download_url, &model_uri, &local_save_path).await?;
+    download_model_file(
+        &utils::OpsmlPaths::Download.as_str(),
+        &model_uri,
+        &local_save_path,
+    )
+    .await?;
 
     Ok(())
 }

@@ -99,3 +99,31 @@ pub struct ModelMetricArgs {
     #[arg(long = "uid")]
     pub uid: Option<String>,
 }
+
+#[derive(Args)]
+pub struct CompareMetricArgs {
+    /// Metric name
+    #[arg(
+        long = "metric_name",
+        use_value_delimiter = true,
+        value_delimiter = ','
+    )]
+    pub metric_name: Vec<String>,
+
+    /// If lower is better
+    #[arg(
+        long = "lower_is_better",
+        use_value_delimiter = true,
+        value_delimiter = ',',
+        default_value = "true"
+    )]
+    pub lower_is_better: Vec<bool>,
+
+    /// Id of new model challenger
+    #[arg(long = "challenger_uid")]
+    pub challenger_uid: String,
+
+    /// Id of new model challenger
+    #[arg(long = "champions_uid")]
+    pub champion_uid: Vec<String>,
+}
