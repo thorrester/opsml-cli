@@ -1,3 +1,6 @@
+use reqwest::{self, Response};
+use serde::Serialize;
+
 pub fn check_args(
     name: &Option<String>,
     version: &Option<String>,
@@ -26,6 +29,14 @@ pub fn remove_suffix<'a>(s: &str, suffix: &str) -> String {
         Some(s) => s.to_string(),
         None => s.to_string(),
     }
+}
+
+/// async post request for metadata
+pub async fn make_post_request<T: Serialize>(url: &str, payload: &T) -> Response {
+    let parsed_url = reqwest::Url::parse(url).unwrap();
+    let client = reqwest::Client::new();
+
+    return client.post(parsed_url).json(payload).send().await.unwrap();
 }
 
 #[cfg(test)]

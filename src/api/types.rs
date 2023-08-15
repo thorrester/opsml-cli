@@ -16,7 +16,7 @@ pub struct ListTableRequest {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DownloadMetadataRequest {
+pub struct CardRequest {
     pub name: Option<String>,
     pub version: Option<String>,
     pub uid: Option<String>,
@@ -36,6 +36,27 @@ pub struct Card {
     pub version: String,
     pub uid: String,
     pub tags: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ListMetricResponse {
+    pub metrics: Vec<Metric>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Metric {
+    pub name: String,
+    pub value: String,
+    pub step: Option<String>,
+    pub timestamp: Option<String>,
+}
+
+#[derive(Tabled)]
+pub struct MetricTable {
+    pub name: String,
+    pub value: String,
+    pub step: String,
+    pub timestamp: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

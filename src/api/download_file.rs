@@ -2,20 +2,11 @@ use crate::api::types;
 use crate::api::utils;
 use futures_util::StreamExt;
 use reqwest::{self, Response};
-use serde::Serialize;
 use serde_json;
 use std::{format, fs, path::Path};
 use tokio;
 
 const MODEL_METADATA_FILE: &str = "metadata.json";
-
-/// async post request for metadata
-async fn make_post_request<T: Serialize>(url: &str, payload: &T) -> Response {
-    let parsed_url = reqwest::Url::parse(url).unwrap();
-    let client = reqwest::Client::new();
-
-    return client.post(parsed_url).json(payload).send().await.unwrap();
-}
 
 /// Parses stream response
 ///
@@ -70,7 +61,7 @@ async fn download_model_file(url: &str, model_uri: &str, local_save_path: &str) 
         read_path: model_uri.to_string(),
     };
 
-    let response = make_post_request(&url, &payload).await;
+    let response = utils::make_post_request(&url, &payload).await;
     let filepath = Path::new(local_save_path);
 
     download_stream_to_file(response, filepath).await;
@@ -87,13 +78,13 @@ async fn get_model_metadata(
     let full_uri_path: String = format!("{}/opsml/models/metadata", url);
     let save_path: String = format!("{}/{}", write_dir, MODEL_METADATA_FILE);
 
-    let model_metadata_request = types::DownloadMetadataRequest {
+    let model_metadata_request = types::CardRequest {
         name: name,
         version: version,
         uid: uid,
     };
 
-    let response = make_post_request(&full_uri_path, &model_metadata_request).await;
+    let response = utils::make_post_request(&full_uri_path, &model_metadata_request).await;
 
     let loaded_response = load_stream_response(response).await;
     let model_metadata: types::ModelMetadata = serde_json::from_str(&loaded_response).unwrap();
@@ -300,7 +291,7 @@ mod tests {
             .create();
 
         let full_path: String = format!("{}/fake", &url);
-        let response = make_post_request(&full_path, &payload).await;
+        let response = utils::make_post_request(&full_path, &payload).await;
 
         assert_eq!(response.status(), 201);
         mock.assert();

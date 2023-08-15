@@ -1,4 +1,5 @@
 use crate::api::types;
+use crate::api::utils;
 use reqwest;
 use serde_json;
 use std::collections::HashMap;
@@ -42,7 +43,7 @@ fn get_registry(registry: &str) -> String {
     panic!("Failed to find registry {}", registry);
 }
 
-fn parse_response(response: &str) {
+fn parse_list_response(response: &str) {
     // Parses response and creates a table
 
     let cards: types::ListCardResponse = serde_json::from_str(response).unwrap();
@@ -81,7 +82,7 @@ fn parse_response(response: &str) {
 /// * `url` - OpsML url
 /// * `tag_name` - Tag name
 /// * `tag_value` - Tag value
-pub fn list_cards(
+pub async fn list_cards(
     registry: &str,
     name: Option<&str>,
     team: Option<&str>,
@@ -119,14 +120,10 @@ pub fn list_cards(
         max_date: max_date.map(|s| s.to_string()),
     };
 
-    let client = reqwest::blocking::Client::new();
-    let response = client
-        .post(full_uri_path)
-        .json(&list_table_request)
-        .send()?;
+    let response = utils::make_post_request(&full_uri_path, &list_table_request).await;
 
     if response.status().is_success() {
-        parse_response(&response.text()?);
+        parse_list_response(&response.text().await?);
     } else {
         println!("Failed to list cards");
         response.error_for_status_ref()?;
@@ -167,6 +164,6 @@ mod tests {
         let mock_response = types::ListCardResponse { cards: vec };
         let string_response = serde_json::to_string(&mock_response).unwrap();
 
-        parse_response(&string_response);
+        parse_list_response(&string_response);
     }
 }

@@ -37,6 +37,7 @@ enum Commands {
     ListCards(ListCards),
     DownloadModelMetadata(ModelMetadataArgs),
     DownloadModel(DownloadModelArgs),
+    GetModelMetrics(ModelMetricArgs),
 }
 
 #[derive(Args)]
@@ -132,6 +133,20 @@ struct DownloadModelArgs {
     onnx: bool,
 }
 
+#[derive(Args)]
+struct ModelMetricArgs {
+    /// Name given to card
+    #[arg(long = "name")]
+    name: Option<String>,
+
+    /// Card version
+    #[arg(long = "version")]
+    version: Option<String>,
+
+    /// Card uid
+    #[arg(long = "uid")]
+    uid: Option<String>,
+}
 fn main() {
     let cli = Cli::parse();
 
@@ -177,6 +192,10 @@ fn main() {
                 args.no_onnx.clone(),
                 args.onnx.clone(),
             );
+        }
+        // subcommand for getting model metrics
+        Some(Commands::DownloadModel(args)) => {
+            download_model(args.name.clone(), args.version.clone(), args.uid.clone());
         }
         None => {}
     }
