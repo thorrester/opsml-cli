@@ -43,7 +43,7 @@ fn get_registry(registry: &str) -> String {
     panic!("Failed to find registry {}", registry);
 }
 
-fn parse_list_response(response: &str) {
+fn parse_list_response(response: &str) -> String {
     // Parses response and creates a table
 
     let cards: types::ListCardResponse = serde_json::from_str(response).unwrap();
@@ -66,7 +66,7 @@ fn parse_list_response(response: &str) {
         .with(Style::sharp())
         .to_string();
 
-    println!("{}", list_table);
+    return list_table;
 }
 
 /// List cards
@@ -123,7 +123,8 @@ pub async fn list_cards(
     let response = utils::make_post_request(&full_uri_path, &list_table_request).await;
 
     if response.status().is_success() {
-        parse_list_response(&response.text().await?);
+        let card_table = parse_list_response(&response.text().await?);
+        println!("{}", card_table);
     } else {
         println!("Failed to list cards");
         response.error_for_status_ref()?;
@@ -164,6 +165,16 @@ mod tests {
         let mock_response = types::ListCardResponse { cards: vec };
         let string_response = serde_json::to_string(&mock_response).unwrap();
 
-        parse_list_response(&string_response);
+        let card_table = parse_list_response(&string_response);
+        assert_eq!(
+            card_table,
+            concat!(
+                "┌──────┬──────┬──────┬────────────┬─────────┬─────┐\n",
+                "│ name │ team │ date │ user_email │ version │ uid │\n",
+                "├──────┼──────┼──────┼────────────┼─────────┼─────┤\n",
+                "│ test │ test │ test │ fake_email │  1.0.0  │ uid │\n",
+                "└──────┴──────┴──────┴────────────┴─────────┴─────┘",
+            )
+        );
     }
 }

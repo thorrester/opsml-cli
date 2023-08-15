@@ -40,21 +40,21 @@ pub struct Card {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ListMetricResponse {
-    pub metrics: Vec<Metric>,
+    pub metrics: HashMap<String, Vec<Metric>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Metric {
     pub name: String,
-    pub value: String,
-    pub step: Option<String>,
-    pub timestamp: Option<String>,
+    pub value: Value,
+    pub step: Option<Value>,
+    pub timestamp: Option<Value>,
 }
 
 #[derive(Tabled)]
 pub struct MetricTable {
-    pub name: String,
-    pub value: String,
+    pub metric: String,
+    pub value: Value,
     pub step: String,
     pub timestamp: String,
 }

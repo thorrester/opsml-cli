@@ -1,6 +1,7 @@
 use api::download_file::download_model;
 use api::download_file::download_model_metadata;
 use api::list_cards::list_cards;
+use api::metrics::get_model_metrics;
 use api::utils::remove_suffix;
 mod api;
 
@@ -24,7 +25,7 @@ lazy_static! {
 }
 
 #[derive(Parser)]
-#[command(about = "CLI tool for Interacting with Opsml server")]
+#[command(about = "CLI tool for Interacting with an Opsml server")]
 
 struct Cli {
     #[command(subcommand)]
@@ -33,10 +34,30 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Lists registered cards
+    /// Lists cards from a registry
+    ///
+    /// # Example
+    ///
+    /// opsml-cli list-cards --registry data
     ListCards(ListCards),
+    /// Download model metadata from the model registry
+    ///
+    /// # Example
+    ///
+    /// opsml-cli download-model-metadata --name model_name --version 1.0.0
     DownloadModelMetadata(ModelMetadataArgs),
+    /// Download a model and its metadata from the model registry
+    ///
+    /// # Example
+    ///
+    /// opsml-cli download-model --name model_name --version 1.0.0
+    /// opsml-cli download-model --name model_name --version 1.0.0 --no-onnx
     DownloadModel(DownloadModelArgs),
+    /// Retrieve model metrics
+    ///
+    /// # Example
+    ///
+    /// opsml-cli get-model-metrics --name model_name --version 1.0.0
     GetModelMetrics(ModelMetricArgs),
 }
 
@@ -46,7 +67,7 @@ struct ListCards {
     #[arg(long = "registry")]
     registry: String,
 
-    /// Name given to card
+    /// Name given to a card
     #[arg(long = "name")]
     name: Option<String>,
 
@@ -147,7 +168,9 @@ struct ModelMetricArgs {
     #[arg(long = "uid")]
     uid: Option<String>,
 }
-fn main() {
+
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
@@ -164,7 +187,9 @@ fn main() {
                 args.tag_name.clone(),
                 args.tag_value.clone(),
                 args.max_date.as_deref(),
-            );
+            )
+            .await;
+
             match response {
                 Ok(response) => response,
                 Err(error) => panic!("Problem encountered: {:?}", error),
@@ -194,9 +219,21 @@ fn main() {
             );
         }
         // subcommand for getting model metrics
-        Some(Commands::DownloadModel(args)) => {
-            download_model(args.name.clone(), args.version.clone(), args.uid.clone());
+        Some(Commands::GetModelMetrics(args)) => {
+            let response = get_model_metrics(
+                args.name.as_deref(),
+                args.version.as_deref(),
+                args.uid.as_deref(),
+                &*OPSML_TRACKING_URI,
+            )
+            .await;
+
+            match response {
+                Ok(response) => response,
+                Err(error) => panic!("Problem encountered: {:?}", error),
+            };
         }
+
         None => {}
     }
 }
